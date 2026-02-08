@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { Brain, Menu, X, Folder, LogOut, User } from 'lucide-react';
+import { Brain, Menu, X, Folder, LogOut, User, Gamepad2 } from 'lucide-react';
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -39,7 +39,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo - Ícone de cérebro vermelho */}
           <Link 
-            href="/dashboard" 
+            href="/rpgs" 
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             <Brain size={32} className="text-primary" />
@@ -65,6 +65,14 @@ export default function Navbar() {
               {/* Menu dropdown do usuário */}
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden">
+                  <Link
+                    href="/rpgs"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-white hover:bg-zinc-800 transition-colors"
+                  >
+                    <Gamepad2 size={20} className="text-primary" />
+                    <span>Meus RPGs</span>
+                  </Link>
                   <Link
                     href="/groups"
                     onClick={() => setUserMenuOpen(false)}
@@ -115,6 +123,15 @@ export default function Navbar() {
             </div>
 
             {/* Links do menu mobile */}
+            <Link
+              href="/rpgs"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-white hover:bg-zinc-800 rounded-lg transition-colors"
+            >
+              <Gamepad2 size={22} className="text-primary" />
+              <span className="font-medium">Meus RPGs</span>
+            </Link>
+
             <Link
               href="/groups"
               onClick={() => setMobileMenuOpen(false)}

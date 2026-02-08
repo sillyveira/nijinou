@@ -12,11 +12,11 @@ export function middleware(request: NextRequest) {
   
   // Se está logado e tenta acessar login/register, redireciona para dashboard
   if (isLoggedIn && (pathname === '/login' || pathname === '/register')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/rpgs', request.url));
   }
   
   // Se não está logado e tenta acessar dashboard, redireciona para login
-  if (!isLoggedIn && pathname.startsWith('/dashboard')) {
+  if (!isLoggedIn && pathname.startsWith('/rpgs')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
   

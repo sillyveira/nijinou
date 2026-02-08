@@ -18,7 +18,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (status === 'authenticated' && session) {
-      router.push('/dashboard');
+      router.push('/rpgs');
     }
   }, [status, session, router]);
 

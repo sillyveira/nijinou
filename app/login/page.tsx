@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push('/dashboard');
+      router.push('/rpgs');
       router.refresh();
     }
   }, [status, router]);
@@ -37,7 +37,7 @@ export default function LoginPage() {
         setError('Credenciais inválidas');
         setLoading(false);
       } else if (result?.ok) {
-        window.location.href = '/dashboard';
+        window.location.href = '/rpgs';
       }
     } catch (error) {
       setError('Ocorreu um erro. Tente novamente.');
