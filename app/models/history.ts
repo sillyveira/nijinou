@@ -3,10 +3,12 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IHistory extends Document {
   rpgId: string;
   chapterName: string;
+  content: string;
   ownerId: string;
   private: boolean;
   characterIds: string[];
   year: number;
+  imageUrl: string;
   createdAt: Date;
   updatedAt: Date;
   updatedById: String;
@@ -22,6 +24,10 @@ const HistorySchema = new Schema<IHistory>(
     chapterName: {
       type: String,
       required: true,
+    },
+    content: {
+      type: String,
+      required: true
     },
     ownerId: {
       type: String,
@@ -42,8 +48,13 @@ const HistorySchema = new Schema<IHistory>(
     },
     year: {
       type: Number,
-      required: true,
+      required: false,
     },
+    imageUrl: {
+      type: String,
+      required: false,
+      default: 'https://i.pinimg.com/originals/e5/1f/2f/e51f2f9a59dfd8e4e3012e144e2f19eb.gif'
+    }
   },
   {
     timestamps: true,

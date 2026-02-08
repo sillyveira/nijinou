@@ -7,6 +7,7 @@ export interface IInventoryItem {
 
 export interface IInventory extends Document {
   items: IInventoryItem[];
+  private: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +28,10 @@ const InventorySchema = new Schema<IInventory>(
         },
       },
     ],
+    private: {
+      type: Boolean,
+      required: false
+    }
   },
   {
     timestamps: true,

@@ -186,6 +186,7 @@ export default function RPGsPage() {
               <div
                 key={rpg._id}
                 className="group relative aspect-square rounded-xl overflow-hidden cursor-pointer transform transition-all hover:scale-105 hover:shadow-2xl"
+                onClick={()=>{router.push(`/rpgs/${rpg._id}`)}}
               >
                 {/* Background com imagem */}
                 <div

@@ -9,9 +9,11 @@ export interface ICharacter extends Document {
   sheetId: string;
   inventoryId: string;
   historyIds: string[];
+  organizationIds: string[];
   imageUrl: string;
   createdAt: Date;
   updatedAt: Date;
+  private: boolean;
 }
 
 const CharacterSchema = new Schema<ICharacter>(
@@ -46,6 +48,10 @@ const CharacterSchema = new Schema<ICharacter>(
       type: String,
       required: true,
     },
+    organizationIds: {
+      type: [String],
+      default: []
+    },
     historyIds: {
       type: [String],
       default: [],
@@ -54,6 +60,11 @@ const CharacterSchema = new Schema<ICharacter>(
       type: String,
       default: '',
     },
+    private: {
+      type: Boolean,
+      required: false,
+      default: false
+    }
   },
   {
     timestamps: true,
