@@ -27,7 +27,8 @@ const SheetSchema = new Schema<ISheet>(
     },
     content: {
       type: String,
-      required: true
+      required: false,
+      default: ''
     }
   },
   {
