@@ -12,6 +12,8 @@ import {
   Crown,
   Search,
   Trash2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 interface Arc {
@@ -21,6 +23,7 @@ interface Arc {
   ownerId: string;
   groupsAllowed: string[];
   historyIds: string[];
+  private: boolean;
   createdAt: string;
 }
 
@@ -124,6 +127,22 @@ export default function ArcsPage() {
     }
   };
 
+  const togglePrivate = async (arcId: string, currentPrivate: boolean) => {
+    try {
+      const res = await fetch('/api/arcs', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ arcId, isPrivate: !currentPrivate }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setArcs(prev => prev.map(a => a._id === arcId ? data.arc : a));
+      }
+    } catch (error) {
+      console.error('Erro ao alterar privacidade:', error);
+    }
+  };
+
   const toggleGroup = (id: string) => {
     if (newGroups.includes(id)) {
       setNewGroups(newGroups.filter(g => g !== id));
@@ -208,6 +227,11 @@ export default function ArcsPage() {
                 <div className="flex items-center gap-3 mb-3">
                   <Gamepad2 size={24} className="text-primary" />
                   <h3 className="text-lg font-bold text-white">{arc.name}</h3>
+                  {arc.private && (
+                    <div title="Privado">
+                      <EyeOff size={16} className="text-zinc-500" />
+                    </div>
+                  )}
                 </div>
                 <p className="text-sm text-zinc-500">{arc.historyIds.length} capítulo(s)</p>
                 {arc.ownerId === userId && (
@@ -217,14 +241,31 @@ export default function ArcsPage() {
                   </div>
                 )}
 
-                {/* Delete button */}
+                {/* Action buttons */}
                 {(isRpgOwner || arc.ownerId === userId) && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setDeleteConfirm(arc._id); }}
-                    className="absolute bottom-3 right-3 p-1.5 bg-red-900/40 hover:bg-red-800/60 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 size={16} className="text-red-400" />
-                  </button>
+                  <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); togglePrivate(arc._id, arc.private); }}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        arc.private 
+                          ? 'bg-zinc-700/60 hover:bg-zinc-600/80' 
+                          : 'bg-blue-900/40 hover:bg-blue-800/60'
+                      }`}
+                      title={arc.private ? 'Tornar público' : 'Tornar privado'}
+                    >
+                      {arc.private ? (
+                        <Eye size={16} className="text-zinc-400" />
+                      ) : (
+                        <EyeOff size={16} className="text-blue-400" />
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirm(arc._id); }}
+                      className="p-1.5 bg-red-900/40 hover:bg-red-800/60 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={16} className="text-red-400" />
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

@@ -73,7 +73,13 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const arcs = await Arc.find(query).sort({ createdAt: -1 });
+    const allArcs = await Arc.find(query).sort({ createdAt: -1 });
+
+    // Filtrar arcos privados: somente owner do arco e owner do RPG podem ver
+    const arcs = allArcs.filter(arc => {
+      if (!arc.private) return true;
+      return arc.ownerId === session.user?.id || isRpgOwner;
+    });
 
     return NextResponse.json({
       arcs,
@@ -120,11 +126,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'RPG não encontrado ou sem acesso' }, { status: 404 });
     }
 
+    // Garantir que os groupsAllowed sejam herdados do RPG
+    const inheritedGroupsAllowed = rpg.groupsAllowed;
+
     const arc = await Arc.create({
       rpgId,
       name: name.trim(),
       ownerId: session.user.id,
-      groupsAllowed: groupsAllowed || [],
+      groupsAllowed: inheritedGroupsAllowed || [],
       historyIds: [],
     });
 
@@ -145,7 +154,7 @@ export async function PUT(request: NextRequest) {
 
     await connectDB();
 
-    const { arcId, name, groupsAllowed } = await request.json();
+    const { arcId, name, isPrivate } = await request.json();
 
     if (!arcId) {
       return NextResponse.json({ error: 'arcId é obrigatório' }, { status: 400 });
@@ -169,7 +178,9 @@ export async function PUT(request: NextRequest) {
     }
 
     if (typeof name === 'string' && name.trim()) arc.name = name.trim();
-    if (Array.isArray(groupsAllowed)) arc.groupsAllowed = groupsAllowed;
+    if (typeof isPrivate === 'boolean') arc.private = isPrivate;
+    // Garantir que os groupsAllowed sejam herdados do RPG
+    arc.groupsAllowed = rpg.groupsAllowed;
 
     await arc.save();
 

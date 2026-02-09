@@ -7,6 +7,7 @@ export interface IEvent extends Document {
   groupsAllowed: string[];
   characterIds: string[];
   historyIds: string[];
+  private: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +40,10 @@ const EventSchema = new Schema<IEvent>(
       type: [String],
       default: [],
     },
+    private: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: true,

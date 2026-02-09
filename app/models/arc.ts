@@ -6,6 +6,7 @@ export interface IArc extends Document {
   ownerId: string;
   groupsAllowed: string[];
   historyIds: string[];
+  private: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,10 @@ const ArcSchema = new Schema<IArc>(
       type: [String],
       default: [],
     },
+    private: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: true,
