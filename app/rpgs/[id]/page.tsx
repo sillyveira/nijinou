@@ -219,6 +219,7 @@ export default function RPGPage() {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
+          onClick={()=>{router.push(`/organizations/${rpg._id}`)}}
         >
           <span className="absolute inset-0 transition-all group-hover:bg-primary/30" />
           <Landmark size={32} className="drop-shadow-lg z-10 group-hover:text-primary transition-all" />

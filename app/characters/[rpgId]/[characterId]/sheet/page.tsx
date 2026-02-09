@@ -190,7 +190,7 @@ export default function CharacterSheetPage() {
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => router.push(`/characters/${rpgId}/${characterId}`)}
-            className="flex items-center gap-2 text-black hover:text-white transition-colors"
+            className="flex items-center gap-2 text-white hover:text-primary-light transition-colors"
           >
             <ArrowLeft size={20} />
             Voltar
@@ -238,7 +238,7 @@ export default function CharacterSheetPage() {
 
         {/* Editor */}
         {canEdit ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl">
+          <div className="bg-zinc-900 border quill-dark border-zinc-800 rounded-xl p-6 shadow-xl">
             <ReactQuill
               theme="snow"
               value={content}

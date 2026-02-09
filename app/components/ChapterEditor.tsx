@@ -27,8 +27,9 @@ interface CharacterOption {
 interface Props {
   rpgId: string;
   parentId: string;
-  parentType: 'character' | 'arc' | 'event';
-  parentName: string;
+  parentType: 'character' | 'arc' | 'event' | 'organization';
+  historyId?: string;
+  parentName?: string;
   backUrl: string;
 }
 
@@ -36,13 +37,14 @@ export default function ChapterEditor({
   rpgId,
   parentId,
   parentType,
+  historyId: historyIdProp,
   parentName,
   backUrl,
 }: Props) {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const historyId = searchParams.get('id');
+  const historyId = historyIdProp || searchParams.get('id');
 
   const [loading, setLoading] = useState(!!historyId);
   const [saving, setSaving] = useState(false);

@@ -296,13 +296,13 @@ export default function CharactersPage() {
                 <div
                   key={character._id}
                   onClick={() => router.push(`/characters/${rpgId}/${character._id}`)}
-                  className="bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl hover:border-primary/50 transition-all cursor-pointer group"
+                  className="bg-zinc-900 border hover:scale-105 border-zinc-700 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl hover:border-primary/50 transition-all cursor-pointer group"
                 >
                   {/* Imagem */}
                   <div className="relative h-48 bg-zinc-800">
                     {character.imageUrl ? (
                       <div
-                        className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform"
+                        className="absolute inset-0 bg-cover bg-center transition-transform"
                         style={{ backgroundImage: `url(${character.imageUrl})` }}
                       />
                     ) : (

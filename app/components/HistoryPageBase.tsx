@@ -44,7 +44,7 @@ interface CharacterOption {
 interface Props {
   rpgId: string;
   parentId: string;
-  parentType: 'character' | 'arc' | 'event';
+  parentType: 'character' | 'arc' | 'event' | 'organization';
   parentName: string;
   historyIds: string[];
   isRpgOwner: boolean;
