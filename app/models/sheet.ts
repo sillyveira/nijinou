@@ -4,6 +4,7 @@ export interface ISheet extends Document {
   rpgId: string;
   ownerId: string;
   private: boolean;
+  content: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +25,10 @@ const SheetSchema = new Schema<ISheet>(
       type: Boolean,
       default: false,
     },
+    content: {
+      type: String,
+      required: true
+    }
   },
   {
     timestamps: true,

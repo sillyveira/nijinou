@@ -3,9 +3,10 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/mongodb';
 import Event from '@/app/models/event';
 import Rpg from '@/app/models/rpg';
+import Arc from '@/app/models/arc';
 import { User } from '@/app/models/user';
 
-// GET - Buscar eventos do RPG
+// GET - Buscar eventos de um arco
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -16,6 +17,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const rpgId = request.nextUrl.searchParams.get('rpgId');
+    const arcId = request.nextUrl.searchParams.get('arcId');
     const eventId = request.nextUrl.searchParams.get('id');
 
     if (!rpgId) {
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
 
     const isRpgOwner = rpg.ownerId === session.user.id;
 
+    // Buscar evento específico por ID
     if (eventId) {
       const event = await Event.findOne({ _id: eventId, rpgId });
       if (!event) {
@@ -63,8 +66,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Buscar todos os eventos
-    let query: any = { rpgId };
+    if (!arcId) {
+      return NextResponse.json({ error: 'arcId é obrigatório' }, { status: 400 });
+    }
+
+    // Verificar acesso ao arco
+    const arc = await Arc.findOne({ _id: arcId, rpgId });
+    if (!arc) {
+      return NextResponse.json({ error: 'Arco não encontrado' }, { status: 404 });
+    }
+
+    // Buscar todos os eventos do arco
+    let query: any = { rpgId, arcId };
 
     if (!isRpgOwner) {
       query.$or = [
@@ -86,7 +99,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Criar novo evento
+// POST - Criar novo evento dentro de um arco
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -96,10 +109,10 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const { rpgId, name, groupsAllowed, characterIds } = await request.json();
+    const { rpgId, arcId, name, groupsAllowed, characterIds } = await request.json();
 
-    if (!rpgId || !name) {
-      return NextResponse.json({ error: 'rpgId e name são obrigatórios' }, { status: 400 });
+    if (!rpgId || !arcId || !name) {
+      return NextResponse.json({ error: 'rpgId, arcId e name são obrigatórios' }, { status: 400 });
     }
 
     const user = await User.findById(session.user.id);
@@ -120,8 +133,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'RPG não encontrado ou sem acesso' }, { status: 404 });
     }
 
+    // Verificar se o arco existe
+    const arc = await Arc.findOne({ _id: arcId, rpgId });
+    if (!arc) {
+      return NextResponse.json({ error: 'Arco não encontrado' }, { status: 404 });
+    }
+
     const event = await Event.create({
       rpgId,
+      arcId,
       name: name.trim(),
       ownerId: session.user.id,
       groupsAllowed: groupsAllowed || [],

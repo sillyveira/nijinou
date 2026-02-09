@@ -3,47 +3,182 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import {
+  Loader2,
+  X,
+  Plus,
+  BookOpen,
+  ArrowLeft,
+  Crown,
+  Search,
+  Trash2,
+  Gamepad2,
+  ScrollText,
+} from 'lucide-react';
 import HistoryPageBase from '@/app/components/HistoryPageBase';
 
-export default function ArcHistoryPage() {
+interface EventItem {
+  _id: string;
+  rpgId: string;
+  arcId: string;
+  name: string;
+  ownerId: string;
+  groupsAllowed: string[];
+  characterIds: string[];
+  historyIds: string[];
+  createdAt: string;
+}
+
+interface ArcData {
+  _id: string;
+  rpgId: string;
+  name: string;
+  ownerId: string;
+  historyIds: string[];
+}
+
+interface Group {
+  _id: string;
+  name: string;
+}
+
+type Tab = 'historias' | 'eventos';
+
+export default function ArcDetailPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const rpgId = params?.rpgId as string;
   const arcId = params?.arcId as string;
 
-  const [arc, setArc] = useState<any>(null);
+  const [arc, setArc] = useState<ArcData | null>(null);
   const [isRpgOwner, setIsRpgOwner] = useState(false);
   const [isArcOwner, setIsArcOwner] = useState(false);
+  const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Tab
+  const [activeTab, setActiveTab] = useState<Tab>('historias');
+
+  // --- Eventos state ---
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [searchName, setSearchName] = useState('');
+
+  // Modal de criação de evento
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newGroups, setNewGroups] = useState<string[]>([]);
+  const [availableGroups, setAvailableGroups] = useState<Group[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  // Delete evento
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
+    if (status === 'unauthenticated') router.push('/login');
   }, [status, router]);
 
+  // Buscar arco
   useEffect(() => {
     async function fetchArc() {
       try {
         const res = await fetch(`/api/arcs?rpgId=${rpgId}&id=${arcId}`);
         const data = await res.json();
-        if (data.arc) {
-          setArc(data.arc);
-        }
+        if (data.arc) setArc(data.arc);
         if (data.isRpgOwner !== undefined) setIsRpgOwner(data.isRpgOwner);
         if (data.isArcOwner !== undefined) setIsArcOwner(data.isArcOwner);
+        if (data.userId) setUserId(data.userId);
       } catch (error) {
         console.error('Erro ao buscar arco:', error);
       } finally {
         setLoading(false);
       }
     }
-    if (status === 'authenticated' && rpgId && arcId) {
-      fetchArc();
-    }
+    if (status === 'authenticated' && rpgId && arcId) fetchArc();
   }, [status, rpgId, arcId]);
+
+  // Buscar eventos do arco
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const res = await fetch(`/api/events?rpgId=${rpgId}&arcId=${arcId}`);
+        const data = await res.json();
+        if (data.events) setEvents(data.events);
+        if (data.userId) setUserId(data.userId);
+        if (data.isRpgOwner !== undefined) setIsRpgOwner(data.isRpgOwner);
+      } catch (error) {
+        console.error('Erro ao buscar eventos:', error);
+      } finally {
+        setEventsLoading(false);
+      }
+    }
+    if (status === 'authenticated' && rpgId && arcId) fetchEvents();
+  }, [status, rpgId, arcId]);
+
+  useEffect(() => {
+    async function fetchGroups() {
+      try {
+        const res = await fetch('/api/groups');
+        const data = await res.json();
+        if (data.groups) setAvailableGroups(data.groups);
+      } catch (error) {
+        console.error('Erro ao buscar grupos:', error);
+      }
+    }
+    if (createOpen) fetchGroups();
+  }, [createOpen]);
+
+  const handleCreateEvent = async () => {
+    if (!newName.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rpgId, arcId, name: newName, groupsAllowed: newGroups }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEvents(prev => [data.event, ...prev]);
+        setCreateOpen(false);
+        setNewName('');
+        setNewGroups([]);
+      }
+    } catch (error) {
+      console.error('Erro ao criar evento:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const res = await fetch('/api/events', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId }),
+      });
+      if (res.ok) {
+        setEvents(prev => prev.filter(e => e._id !== eventId));
+        setDeleteConfirm(null);
+      }
+    } catch (error) {
+      console.error('Erro ao deletar evento:', error);
+    }
+  };
+
+  const toggleGroup = (id: string) => {
+    if (newGroups.includes(id)) {
+      setNewGroups(newGroups.filter(g => g !== id));
+    } else {
+      setNewGroups([...newGroups, id]);
+    }
+  };
+
+  const filteredEvents = events.filter(e =>
+    e.name.toLowerCase().includes(searchName.toLowerCase())
+  );
 
   if (status === 'loading' || loading) {
     return (
@@ -56,22 +191,223 @@ export default function ArcHistoryPage() {
   if (!arc) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <span className="text-zinc-400 text-lg">Arco não encontrado</span>
+        <Gamepad2 size={48} className="text-zinc-700" />
+        <span className="ml-4 text-zinc-400 text-lg">Arco não encontrado</span>
       </div>
     );
   }
 
   return (
-    <HistoryPageBase
-      rpgId={rpgId}
-      parentId={arcId}
-      parentType="arc"
-      parentName={arc.name}
-      historyIds={arc.historyIds || []}
-      isRpgOwner={isRpgOwner}
-      isParentOwner={isArcOwner}
-      backUrl={`/arcs/${rpgId}`}
-      editorBasePath={`/arcs/${rpgId}/${arcId}`}
-    />
+    <div className="min-h-screen bg-secondary">
+      {/* Header */}
+      <div className="relative h-48 w-full mb-0 rounded-b-xl overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-t from-primary/40 to-zinc-900" />
+        <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
+        <div className="relative z-10 flex flex-col items-center justify-center h-full">
+          <Gamepad2 size={40} className="text-primary mb-2" />
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-2xl">
+            {arc.name}
+          </h1>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="sticky top-0 z-20 bg-secondary border-b border-zinc-800">
+        <div className="max-w-6xl mx-auto px-4 flex">
+          <button
+            onClick={() => setActiveTab('historias')}
+            className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm transition-colors border-b-2 ${
+              activeTab === 'historias'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-zinc-400 hover:text-white'
+            }`}
+          >
+            <ScrollText size={18} />
+            Histórias
+          </button>
+          <button
+            onClick={() => setActiveTab('eventos')}
+            className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm transition-colors border-b-2 ${
+              activeTab === 'eventos'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-zinc-400 hover:text-white'
+            }`}
+          >
+            <BookOpen size={18} />
+            Eventos
+          </button>
+        </div>
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'historias' ? (
+        <HistoryPageBase
+          rpgId={rpgId}
+          parentId={arcId}
+          parentType="arc"
+          parentName={arc.name}
+          historyIds={arc.historyIds || []}
+          isRpgOwner={isRpgOwner}
+          isParentOwner={isArcOwner}
+          backUrl={`/arcs/${rpgId}`}
+          editorBasePath={`/arcs/${rpgId}/${arcId}`}
+        />
+      ) : (
+        <div className="max-w-6xl mx-auto px-4 py-8 pb-12">
+          {/* Voltar + Adicionar Evento */}
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={() => router.push(`/arcs/${rpgId}`)}
+              className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft size={20} />
+              Voltar aos Arcos
+            </button>
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white font-semibold rounded-lg transition-colors shadow-lg"
+            >
+              <Plus size={20} />
+              Novo Evento
+            </button>
+          </div>
+
+          {/* Busca */}
+          <div className="mb-6">
+            <div className="relative max-w-md">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <input
+                type="text"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                placeholder="Buscar evento..."
+                className="w-full pl-10 pr-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Lista de eventos */}
+          {eventsLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="animate-spin text-primary" size={36} />
+            </div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <BookOpen size={64} className="text-zinc-700 mb-4" />
+              <p className="text-zinc-500 text-lg">Nenhum evento encontrado</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredEvents.map((event) => (
+                <div
+                  key={event._id}
+                  className="relative group bg-zinc-900 border border-zinc-800 hover:border-primary/40 rounded-xl p-5 cursor-pointer transition-all shadow-lg"
+                  onClick={() => router.push(`/arcs/${rpgId}/${arcId}/events/${event._id}`)}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <BookOpen size={24} className="text-primary" />
+                    <h3 className="text-lg font-bold text-white">{event.name}</h3>
+                  </div>
+                  <p className="text-sm text-zinc-500">{event.historyIds.length} capítulo(s)</p>
+                  {event.ownerId === userId && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-yellow-500/20 px-2 py-0.5 rounded-full">
+                      <Crown size={12} className="text-yellow-400" />
+                      <span className="text-yellow-400 text-xs">Dono</span>
+                    </div>
+                  )}
+
+                  {/* Delete button */}
+                  {(isRpgOwner || event.ownerId === userId) && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirm(event._id); }}
+                      className="absolute bottom-3 right-3 p-1.5 bg-red-900/40 hover:bg-red-800/60 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <Trash2 size={16} className="text-red-400" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal de confirmação de exclusão */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-sm shadow-2xl p-6">
+            <h2 className="text-lg font-bold text-white mb-3">Confirmar exclusão</h2>
+            <p className="text-zinc-400 mb-6">Tem certeza de que deseja excluir este evento?</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors">Cancelar</button>
+              <button onClick={() => handleDeleteEvent(deleteConfirm)} className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">Excluir</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de criação de evento */}
+      {createOpen && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-zinc-700">
+              <h2 className="text-xl font-bold text-white">Novo Evento</h2>
+              <button onClick={() => setCreateOpen(false)} className="p-1 hover:bg-zinc-700 rounded-lg transition-colors text-zinc-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <label className="block text-zinc-300 font-medium mb-2">Nome do Evento</label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Nome do evento..."
+                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-zinc-300 font-medium mb-2">Grupos com acesso</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {newGroups.map((id) => {
+                    const group = availableGroups.find(g => g._id === id);
+                    return (
+                      <span key={id} className="flex items-center gap-1 px-3 py-1 bg-primary/20 text-primary-light rounded-full text-sm">
+                        {group?.name}
+                        <button onClick={() => toggleGroup(id)} className="hover:text-white transition-colors"><X size={14} /></button>
+                      </span>
+                    );
+                  })}
+                </div>
+                <div className="max-h-48 overflow-y-auto bg-zinc-800 border border-zinc-600 rounded-lg">
+                  {availableGroups.length === 0 ? (
+                    <p className="px-4 py-3 text-zinc-500 text-center">Nenhum grupo disponível</p>
+                  ) : (
+                    availableGroups.map(group => (
+                      <button key={group._id} onClick={() => toggleGroup(group._id)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-700 transition-colors text-left">
+                        <span className="text-white">{group.name}</span>
+                        {newGroups.includes(group._id) && <span className="text-primary">✓</span>}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 p-5 border-t border-zinc-700">
+              <button onClick={() => setCreateOpen(false)} className="flex-1 px-4 py-3 bg-zinc-700 hover:bg-zinc-600 text-white font-medium rounded-lg transition-colors">Cancelar</button>
+              <button
+                onClick={handleCreateEvent}
+                disabled={saving || !newName.trim()}
+                className="flex-1 px-4 py-3 bg-primary hover:bg-primary/80 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {saving ? <Loader2 size={20} className="animate-spin" /> : <Plus size={20} />}
+                Criar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

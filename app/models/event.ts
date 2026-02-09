@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IEvent extends Document {
   rpgId: string;
+  arcId: string;
   name: string;
   ownerId: string;
   groupsAllowed: string[];
@@ -15,6 +16,11 @@ export interface IEvent extends Document {
 const EventSchema = new Schema<IEvent>(
   {
     rpgId: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    arcId: {
       type: String,
       required: true,
       index: true,

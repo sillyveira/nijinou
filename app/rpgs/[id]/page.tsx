@@ -11,7 +11,6 @@ import {
   Gamepad2,
   Users,
   Landmark,
-  BookOpen,
 } from 'lucide-react';
 
 interface RPG {
@@ -197,20 +196,6 @@ export default function RPGPage() {
           <span className="absolute inset-0 transition-all group-hover:bg-primary/30" />
           <Gamepad2 size={32} className="drop-shadow-lg z-10 group-hover:text-primary transition-all" />
           <span className="text-lg md:text-2xl font-bold drop-shadow-lg z-10 group-hover:text-primary transition-all">Arcos</span>
-        </button>
-        <button
-          className="relative cursor-pointer flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
-          style={{
-            backgroundImage:
-              'linear-gradient(to right, #000 30%, transparent), url(https://cdna.artstation.com/p/assets/images/images/052/464/926/large/shella-mae-furog-shot-30-bg.jpg?1659878288)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-          onClick={()=>{router.push(`/events/${rpg._id}`)}}
-        >
-          <span className="absolute inset-0 transition-all group-hover:bg-primary/30" />
-          <BookOpen size={32} className="drop-shadow-lg z-10 group-hover:text-primary transition-all" />
-          <span className="text-lg md:text-2xl font-bold drop-shadow-lg z-10 group-hover:text-primary transition-all">Eventos</span>
         </button>
         <button
           className="relative cursor-pointer flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
