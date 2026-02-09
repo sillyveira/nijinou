@@ -244,6 +244,7 @@ export default function CharacterPage() {
           </span>
         </button>
         <button
+          onClick={() => router.push(`/characters/${rpgId}/${characterId}/sheet`)}
           className="relative flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
           style={{
             backgroundImage:

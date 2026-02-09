@@ -14,6 +14,8 @@ import {
   Trash2,
   Gamepad2,
   ScrollText,
+  Users,
+  EyeOff,
 } from 'lucide-react';
 import HistoryPageBase from '@/app/components/HistoryPageBase';
 
@@ -42,7 +44,19 @@ interface Group {
   name: string;
 }
 
-type Tab = 'historias' | 'eventos';
+interface CharacterFeatItem {
+  _id: string;
+  rpgId: string;
+  arcId: string;
+  characterId: string;
+  characterName: string;
+  ownerId: string;
+  private: boolean;
+  content: string;
+  createdAt: string;
+}
+
+type Tab = 'historias' | 'eventos' | 'personagens';
 
 export default function ArcDetailPage() {
   const { data: session, status } = useSession();
@@ -74,6 +88,18 @@ export default function ArcDetailPage() {
 
   // Delete evento
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // --- Personagens state ---
+  const [characterFeats, setCharacterFeats] = useState<CharacterFeatItem[]>([]);
+  const [characterFeatsLoading, setCharacterFeatsLoading] = useState(true);
+  const [searchCharacterName, setSearchCharacterName] = useState('');
+
+  // Modal de criação de CharacterFeat
+  const [createCharacterFeatOpen, setCreateCharacterFeatOpen] = useState(false);
+  const [searchCharacterModal, setSearchCharacterModal] = useState('');
+  const [availableCharacters, setAvailableCharacters] = useState<{ _id: string; name: string; ownerId: string; private: boolean }[]>([]);
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const [savingCharacterFeat, setSavingCharacterFeat] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login');
@@ -116,6 +142,22 @@ export default function ArcDetailPage() {
     if (status === 'authenticated' && rpgId && arcId) fetchEvents();
   }, [status, rpgId, arcId]);
 
+  // Buscar characterFeats do arco
+  useEffect(() => {
+    async function fetchCharacterFeats() {
+      try {
+        const res = await fetch(`/api/characterFeats?rpgId=${rpgId}&arcId=${arcId}`);
+        const data = await res.json();
+        if (data.characterFeats) setCharacterFeats(data.characterFeats);
+      } catch (error) {
+        console.error('Erro ao buscar characterFeats:', error);
+      } finally {
+        setCharacterFeatsLoading(false);
+      }
+    }
+    if (status === 'authenticated' && rpgId && arcId) fetchCharacterFeats();
+  }, [status, rpgId, arcId]);
+
   useEffect(() => {
     async function fetchGroups() {
       try {
@@ -128,6 +170,29 @@ export default function ArcDetailPage() {
     }
     if (createOpen) fetchGroups();
   }, [createOpen]);
+
+  useEffect(() => {
+    async function fetchCharacters() {
+      if (!rpgId || !userId) return;
+      try {
+        const res = await fetch(`/api/characters?rpgId=${rpgId}`);
+        const data = await res.json();
+        if (data.characters) {
+          // Filter characters based on privacy: show only if public OR user is owner OR user is RPG owner
+          const filtered = data.characters.filter((char: { _id: string; name: string; ownerId: string; private: boolean }) => {
+            if (!char.private) return true;
+            if (char.ownerId === userId) return true;
+            if (isRpgOwner) return true;
+            return false;
+          });
+          setAvailableCharacters(filtered);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar personagens:', error);
+      }
+    }
+    if (createCharacterFeatOpen) fetchCharacters();
+  }, [createCharacterFeatOpen, rpgId, userId, isRpgOwner]);
 
   const handleCreateEvent = async () => {
     if (!newName.trim()) return;
@@ -149,6 +214,47 @@ export default function ArcDetailPage() {
       console.error('Erro ao criar evento:', error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCreateCharacterFeat = async () => {
+    if (!selectedCharacterId) return;
+    setSavingCharacterFeat(true);
+    try {
+      const res = await fetch('/api/characterFeats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rpgId,
+          arcId,
+          characterId: selectedCharacterId,
+          private: false,
+          content: '',
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Add character name to the created feat
+        const selectedChar = availableCharacters.find(c => c._id === selectedCharacterId);
+        const newFeat = {
+          ...data.characterFeat,
+          characterName: selectedChar?.name || 'Desconhecido',
+        };
+        setCharacterFeats(prev => [newFeat, ...prev]);
+        setCreateCharacterFeatOpen(false);
+        setSelectedCharacterId(null);
+        setSearchCharacterModal('');
+        // Navigate to the new character feat page
+        router.push(`/arcs/${rpgId}/${arcId}/personagens/${data.characterFeat._id}`);
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Erro ao criar progresso do personagem');
+      }
+    } catch (error) {
+      console.error('Erro ao criar CharacterFeat:', error);
+      alert('Erro ao criar progresso do personagem');
+    } finally {
+      setSavingCharacterFeat(false);
     }
   };
 
@@ -176,8 +282,16 @@ export default function ArcDetailPage() {
     }
   };
 
+  const filteredCharactersModal = availableCharacters.filter(char =>
+    char.name.toLowerCase().includes(searchCharacterModal.toLowerCase())
+  );
+
   const filteredEvents = events.filter(e =>
     e.name.toLowerCase().includes(searchName.toLowerCase())
+  );
+
+  const filteredCharacterFeats = characterFeats.filter(feat =>
+    feat.characterName.toLowerCase().includes(searchCharacterName.toLowerCase())
   );
 
   if (status === 'loading' || loading) {
@@ -236,6 +350,17 @@ export default function ArcDetailPage() {
             <BookOpen size={18} />
             Eventos
           </button>
+          <button
+            onClick={() => setActiveTab('personagens')}
+            className={`flex items-center gap-2 px-6 py-4 font-semibold text-sm transition-colors border-b-2 ${
+              activeTab === 'personagens'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-zinc-400 hover:text-white'
+            }`}
+          >
+            <Users size={18} />
+            Personagens
+          </button>
         </div>
       </div>
 
@@ -252,7 +377,7 @@ export default function ArcDetailPage() {
           backUrl={`/arcs/${rpgId}`}
           editorBasePath={`/arcs/${rpgId}/${arcId}`}
         />
-      ) : (
+      ) : activeTab === 'eventos' ? (
         <div className="max-w-6xl mx-auto px-4 py-8 pb-12">
           {/* Voltar + Adicionar Evento */}
           <div className="flex items-center justify-between mb-6">
@@ -330,6 +455,74 @@ export default function ArcDetailPage() {
             </div>
           )}
         </div>
+      ) : (
+        /* Personagens Tab */
+        <div className="max-w-6xl mx-auto px-4 py-8 pb-12">
+          {/* Voltar + Adicionar Personagem */}
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={() => router.push(`/arcs/${rpgId}`)}
+              className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft size={20} />
+              Voltar aos Arcos
+            </button>
+            <button
+              onClick={() => setCreateCharacterFeatOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white font-semibold rounded-lg transition-colors shadow-lg"
+            >
+              <Plus size={20} />
+              Adicionar Personagem
+            </button>
+          </div>
+
+          {/* Busca por nome do personagem */}
+          <div className="mb-6">
+            <div className="relative max-w-md">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <input
+                type="text"
+                value={searchCharacterName}
+                onChange={(e) => setSearchCharacterName(e.target.value)}
+                placeholder="Buscar por personagem..."
+                className="w-full pl-10 pr-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Lista de CharacterFeats */}
+          {characterFeatsLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="animate-spin text-primary" size={36} />
+            </div>
+          ) : filteredCharacterFeats.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Users size={64} className="text-zinc-700 mb-4" />
+              <p className="text-zinc-500 text-lg">Nenhum personagem encontrado</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredCharacterFeats.map((feat) => (
+                <button
+                  key={feat._id}
+                  onClick={() => router.push(`/arcs/${rpgId}/${arcId}/personagens/${feat._id}`)}
+                  className="relative group bg-linear-to-br from-zinc-800 to-zinc-900 hover:from-primary/20 hover:to-primary/5 border border-zinc-700 hover:border-primary/40 rounded-xl p-6 transition-all shadow-lg text-left"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Users size={24} className="text-primary" />
+                    <h3 className="text-lg font-bold text-white">{feat.characterName}</h3>
+                  </div>
+                  {feat.private && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-red-500/20 px-2 py-1 rounded-full">
+                      <EyeOff size={12} className="text-red-400" />
+                      <span className="text-red-400 text-xs">Privado</span>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Modal de confirmação de exclusão */}
@@ -403,6 +596,108 @@ export default function ArcDetailPage() {
               >
                 {saving ? <Loader2 size={20} className="animate-spin" /> : <Plus size={20} />}
                 Criar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de criação de CharacterFeat */}
+      {createCharacterFeatOpen && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-zinc-700">
+              <h2 className="text-xl font-bold text-white">Adicionar Personagem</h2>
+              <button 
+                onClick={() => {
+                  setCreateCharacterFeatOpen(false);
+                  setSelectedCharacterId(null);
+                  setSearchCharacterModal('');
+                }}
+                className="p-1 hover:bg-zinc-700 rounded-lg transition-colors text-zinc-400 hover:text-white"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              {/* Busca de personagem */}
+              <div>
+                <label className="block text-zinc-300 font-medium mb-2">Buscar Personagem</label>
+                <div className="relative">
+                  <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                  <input
+                    type="text"
+                    value={searchCharacterModal}
+                    onChange={(e) => setSearchCharacterModal(e.target.value)}
+                    placeholder="Digite o nome do personagem..."
+                    className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Lista de personagens */}
+              <div>
+                <label className="block text-zinc-300 font-medium mb-2">Selecione um Personagem</label>
+                <div className="max-h-64 overflow-y-auto bg-zinc-800 border border-zinc-600 rounded-lg">
+                  {filteredCharactersModal.length === 0 ? (
+                    <p className="px-4 py-6 text-zinc-500 text-center">
+                      {searchCharacterModal ? 'Nenhum personagem encontrado' : 'Nenhum personagem disponível'}
+                    </p>
+                  ) : (
+                    filteredCharactersModal.map(char => (
+                      <button
+                        key={char._id}
+                        onClick={() => setSelectedCharacterId(char._id)}
+                        className={`w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-700 transition-colors text-left border-b border-zinc-700 last:border-b-0 ${
+                          selectedCharacterId === char._id ? 'bg-zinc-700' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Users size={18} className="text-primary" />
+                          <span className="text-white font-medium">{char.name}</span>
+                          {char.private && (
+                            <div className="flex items-center gap-1 bg-red-500/20 px-2 py-0.5 rounded-full">
+                              <EyeOff size={12} className="text-red-400" />
+                              <span className="text-red-400 text-xs">Privado</span>
+                            </div>
+                          )}
+                        </div>
+                        {selectedCharacterId === char._id && (
+                          <span className="text-primary text-xl">✓</span>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 p-5 border-t border-zinc-700">
+              <button 
+                onClick={() => {
+                  setCreateCharacterFeatOpen(false);
+                  setSelectedCharacterId(null);
+                  setSearchCharacterModal('');
+                }}
+                className="flex-1 px-4 py-3 bg-zinc-700 hover:bg-zinc-600 text-white font-medium rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateCharacterFeat}
+                disabled={savingCharacterFeat || !selectedCharacterId}
+                className="flex-1 px-4 py-3 bg-primary hover:bg-primary/80 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {savingCharacterFeat ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <Plus size={20} />
+                    Adicionar
+                  </>
+                )}
               </button>
             </div>
           </div>
