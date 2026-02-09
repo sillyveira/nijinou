@@ -36,3 +36,108 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Quill Editor Dark Theme */
+.quill-dark .ql-toolbar {
+  border-color: #3f3f46 !important;
+  background: #27272a;
+}
+.quill-dark .ql-toolbar .ql-stroke {
+  stroke: #a1a1aa !important;
+}
+.quill-dark .ql-toolbar .ql-fill {
+  fill: #a1a1aa !important;
+}
+.quill-dark .ql-toolbar .ql-picker-label {
+  color: #a1a1aa !important;
+}
+.quill-dark .ql-toolbar .ql-picker-options {
+  background: #27272a !important;
+  border-color: #3f3f46 !important;
+}
+.quill-dark .ql-toolbar .ql-picker-item {
+  color: #d4d4d8 !important;
+}
+.quill-dark .ql-toolbar button:hover .ql-stroke,
+.quill-dark .ql-toolbar .ql-active .ql-stroke {
+  stroke: var(--primary-light) !important;
+}
+.quill-dark .ql-toolbar button:hover .ql-fill,
+.quill-dark .ql-toolbar .ql-active .ql-fill {
+  fill: var(--primary-light) !important;
+}
+.quill-dark .ql-container {
+  border-color: #3f3f46 !important;
+  background: #18181b;
+  color: #e4e4e7;
+  min-height: 200px;
+  font-size: 16px;
+}
+.quill-dark .ql-editor {
+  min-height: 200px;
+  color: #e4e4e7;
+}
+.quill-dark .ql-editor.ql-blank::before {
+  color: #71717a;
+  font-style: italic;
+}
+
+/* Quill content view */
+.ql-editor-view {
+  color: #ffffff !important;
+}
+
+.ql-editor-view img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+/* Preserve Quill formatting in view mode */
+.ql-editor-view strong,
+.ql-editor-view b {
+  font-weight: bold !important;
+}
+
+.ql-editor-view em,
+.ql-editor-view i {
+  font-style: italic !important;
+}
+
+.ql-editor-view u {
+  text-decoration: underline !important;
+}
+
+/* Quill size classes */
+.ql-editor-view .ql-size-small {
+  font-size: 0.75em !important;
+}
+
+.ql-editor-view .ql-size-large {
+  font-size: 1.5em !important;
+}
+
+.ql-editor-view .ql-size-huge {
+  font-size: 2.5em !important;
+}
+
+/* Preserve all Quill color styles */
+.ql-editor-view [class*="ql-color-"] {
+  color: inherit !important;
+}
+
+.ql-editor-view .ql-font-serif {
+  font-family: Georgia, Times New Roman, serif !important;
+}
+
+.ql-editor-view .ql-font-monospace {
+  font-family: Monaco, Courier New, monospace !important;
+}
+
+/* Ensure inline styles are preserved */
+.ql-editor-view span[style],
+.ql-editor-view strong[style],
+.ql-editor-view em[style],
+.ql-editor-view u[style] {
+  all: revert !important;
+}

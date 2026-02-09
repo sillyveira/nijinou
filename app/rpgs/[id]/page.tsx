@@ -185,26 +185,28 @@ export default function RPGPage() {
       {/* Botões de navegação vertical, centralizados, grandes no web, com imagem de fundo e gradiente */}
       <div className="flex flex-col items-center justify-center gap-6 mb-12">
         <button
-          className="relative flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
+          className="relative cursor-pointer flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
           style={{
             backgroundImage:
               'linear-gradient(to right, #000 30%, transparent), url(https://preview.redd.it/i-tried-to-draw-karakuri-island-using-ai-v0-utgh62mg68j81.png?width=640&crop=smart&auto=webp&s=24ddf2d14e1d6e690592379e041eb5408fecf881)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
+          onClick={()=>{router.push(`/arcs/${rpg._id}`)}}
         >
           <span className="absolute inset-0 transition-all group-hover:bg-primary/30" />
           <Gamepad2 size={32} className="drop-shadow-lg z-10 group-hover:text-primary transition-all" />
           <span className="text-lg md:text-2xl font-bold drop-shadow-lg z-10 group-hover:text-primary transition-all">Arcos</span>
         </button>
         <button
-          className="relative flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
+          className="relative cursor-pointer flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
           style={{
             backgroundImage:
               'linear-gradient(to right, #000 30%, transparent), url(https://cdna.artstation.com/p/assets/images/images/052/464/926/large/shella-mae-furog-shot-30-bg.jpg?1659878288)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
+          onClick={()=>{router.push(`/events/${rpg._id}`)}}
         >
           <span className="absolute inset-0 transition-all group-hover:bg-primary/30" />
           <BookOpen size={32} className="drop-shadow-lg z-10 group-hover:text-primary transition-all" />

@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IArc extends Document {
+export interface IEvent extends Document {
   rpgId: string;
   name: string;
   ownerId: string;
@@ -11,7 +11,7 @@ export interface IArc extends Document {
   updatedAt: Date;
 }
 
-const ArcSchema = new Schema<IArc>(
+const EventSchema = new Schema<IEvent>(
   {
     rpgId: {
       type: String,
@@ -45,4 +45,4 @@ const ArcSchema = new Schema<IArc>(
   }
 );
 
-export default mongoose.models.Arc || mongoose.model<IArc>('Arc', ArcSchema);
+export default mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);
