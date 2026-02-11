@@ -280,7 +280,7 @@ export default function CharacterPage() {
           className="relative flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
           style={{
             backgroundImage:
-              'linear-gradient(to right, #000 30%, transparent), url(https://i.pinimg.com/originals/47/a0/74/47a074a09c5c57a82994153e8df40932.gif)',
+              'linear-gradient(to right, #000 30%, transparent), url(https://i.makeagif.com/media/4-17-2021/-SCvTZ.gif)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
