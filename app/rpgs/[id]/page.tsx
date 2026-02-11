@@ -212,7 +212,7 @@ export default function RPGPage() {
           <span className="text-lg md:text-2xl font-bold drop-shadow-lg z-10 group-hover:text-primary transition-all">Personagens</span>
         </button>
         <button
-          className="relative flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
+          className="relative cursor-pointer flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
           style={{
             backgroundImage:
               'linear-gradient(to right, #000 30%, transparent), url(https://imgix.ranker.com/list_img_v2/1743/3121743/original/3121743)',

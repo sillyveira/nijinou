@@ -12,6 +12,7 @@ import {
   BookOpen,
   FileText,
   Package,
+  Zap,
   EyeOff,
   Eye,
 } from 'lucide-react';
@@ -272,6 +273,22 @@ export default function CharacterPage() {
           <Package size={32} className="drop-shadow-lg z-10 group-hover:text-primary transition-all" />
           <span className="text-lg md:text-2xl font-bold drop-shadow-lg z-10 group-hover:text-primary transition-all">
             Inventário
+          </span>
+        </button>
+        <button
+          onClick={() => router.push(`/characters/${rpgId}/${characterId}/powers`)}
+          className="relative flex items-center gap-3 px-6 py-5 md:px-10 md:py-8 text-white font-semibold rounded-xl transition-all shadow-xl w-60 md:min-w-105 md:max-w-2xl md:w-full h-20 md:h-32 overflow-hidden group"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, #000 30%, transparent), url(https://i.pinimg.com/originals/47/a0/74/47a074a09c5c57a82994153e8df40932.gif)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <span className="absolute inset-0 transition-all group-hover:bg-primary/30" />
+          <Zap size={32} className="drop-shadow-lg z-10 group-hover:text-primary transition-all" />
+          <span className="text-lg md:text-2xl font-bold drop-shadow-lg z-10 group-hover:text-primary transition-all">
+            Poderes
           </span>
         </button>
       </div>
