@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import {Quill} from 'react-quill-new'
 import {
   Loader2,
   Search,
@@ -187,8 +188,8 @@ export default function HistoryPageBase({
   // Modo leitura
   if (readingHistory) {
     return (
-      <div className="min-h-screen bg-secondary">
-        <div className="relative h-64 w-full mb-8 rounded-b-xl overflow-hidden">
+      <div className="min-h-screen bg-secondary overflow-x-hidden">
+        <div className="relative h-64 w-full mb-8 overflow-hidden">
           {readingHistory.imageUrl ? (
             <div
               className="absolute inset-0 bg-cover bg-center"
@@ -198,15 +199,15 @@ export default function HistoryPageBase({
               }}
             />
           ) : (
-            <div className="absolute inset-0 bg-linear-to-t from-primary to-zinc-900" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary to-zinc-900" />
           )}
-          <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
-          <div className="relative z-10 flex flex-col items-center justify-center h-full">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-2xl mb-2 text-center px-4">
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+          <div className="relative z-10 flex flex-col items-center justify-center h-full px-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white drop-shadow-2xl mb-2 text-center break-words max-w-full">
               {readingHistory.chapterName}
             </h1>
             {readingHistory.year && (
-              <p className="text-lg text-zinc-300 drop-shadow-lg mb-3 flex items-center gap-2">
+              <p className="text-base sm:text-lg text-zinc-300 drop-shadow-lg mb-3 flex items-center gap-2">
                 <Calendar size={18} />
                 Ano {readingHistory.year}
               </p>
@@ -214,7 +215,7 @@ export default function HistoryPageBase({
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 pb-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-12">
           <button
             onClick={() => setReadingHistory(null)}
             className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors"
@@ -235,7 +236,8 @@ export default function HistoryPageBase({
           )}
 
           <div
-            className="ql-editor-view text-white text-lg max-w-none"
+            className="text-white wrap-break-word whitespace-normal"
+             
             dangerouslySetInnerHTML={{ __html: readingHistory.content }}
           />
         </div>
@@ -244,22 +246,22 @@ export default function HistoryPageBase({
   }
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-secondary overflow-x-hidden">
       {/* Header */}
-      <div className="relative h-48 w-full mb-8 rounded-b-xl overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-t from-primary/40 to-zinc-900" />
-        <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
-        <div className="relative z-10 flex flex-col items-center justify-center h-full">
+      <div className="relative h-48 w-full mb-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-zinc-900" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-4">
           <BookOpen size={40} className="text-primary mb-2" />
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-2xl mb-1">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white drop-shadow-2xl mb-1 text-center break-words">
             Histórias
           </h1>
-          <p className="text-white text-sm">{parentName}</p>
+          <p className="text-white text-sm text-center break-words max-w-full">{parentName}</p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 pb-12">
-        <div className="flex items-center justify-between mb-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-12">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <button
             onClick={() => router.push(backUrl)}
             className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
@@ -269,7 +271,7 @@ export default function HistoryPageBase({
           </button>
           <button
             onClick={() => router.push(`${editorBasePath}/editor`)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white font-semibold rounded-lg transition-colors shadow-lg"
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white font-semibold rounded-lg transition-colors shadow-lg whitespace-nowrap"
           >
             <Plus size={20} />
             Adicionar Capítulo
